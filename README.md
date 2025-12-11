@@ -40,6 +40,46 @@
   - RESTful API 接口
   - 开源友好，适合开发者集成
 
+### OpenRouter
+- **网址**: https://openrouter.ai/
+- **免费额度**:
+  - 新用户注册赠送免费额度
+  - 部分模型提供免费访问
+  - 支持多个主流 LLM（GPT、Claude、Gemini、Llama 等）
+  - 统一 API 接口，兼容 OpenAI 格式
+- **特点**:
+  - 模型聚合平台，一个 API 访问多个模型
+  - 支持 50+ 种 AI 模型
+  - 自动路由到最优模型
+  - 透明的价格对比
+  - 支持流式输出
+  - 适合开发者快速切换和测试不同模型
+- **适合场景**:
+  - 多模型对比测试
+  - API 开发和集成
+  - 模型性价比优化
+  - 快速原型开发
+
+### NVIDIA AI (build.nvidia.com)
+- **网址**: https://build.nvidia.com/
+- **免费额度**:
+  - 每个模型提供免费 API 积分
+  - 支持 NVIDIA 优化的多个开源模型
+  - 无需信用卡即可开始使用
+  - 每月更新免费额度
+- **特点**:
+  - NVIDIA 官方优化的 AI 模型推理服务
+  - 支持 Llama、Mistral、Gemma 等主流开源模型
+  - GPU 加速推理，速度快
+  - 提供 API Playground 在线测试
+  - 兼容 OpenAI API 格式
+  - NVIDIA NIM 微服务架构
+- **适合场景**:
+  - 高性能 LLM 推理
+  - 开源模型测试和部署
+  - GPU 加速应用开发
+  - 企业级 AI 应用原型
+
 ## 模型资源
 
 ### Hugging Face
