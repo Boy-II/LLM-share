@@ -8,7 +8,7 @@
 - **网址**: https://claude.ai
 - **免费额度**:
   - 每天免费使用 Claude 模型（有使用次数限制）
-  - 支持 Claude 3.5 Sonnet 等最新模型
+  - 支持 Claude 4.5 Sonnet 等最新模型
   - 无需信用卡即可使用
 - **特点**:
   - 支持超长上下文（200K tokens）
@@ -19,8 +19,8 @@
 - **网址**: https://aistudio.google.com
 - **免费额度**:
   - 每天免费使用 Gemini 模型
-  - Gemini 1.5 Flash: 每分钟 15 次请求
-  - Gemini 1.5 Pro: 每分钟 2 次请求
+  - Gemini 2.5 Flash: 每分钟 15 次请求
+  - Gemini 2.5 Pro: 每分钟 2 次请求
   - 完全免费，无需信用卡
 - **特点**:
   - 支持超长上下文（最高 2M tokens）
