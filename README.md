@@ -84,14 +84,25 @@
   - GPU T4 Small: 适合运行中小型模型
   - GPU A10G: 适合运行大型模型推理
 
-### GitHub 学生/开发者福利
-- **GitHub Copilot**:
-  - 学生和开源维护者免费使用
-  - 账号持有 180 天后，每月可获得 $5 美金的 Copilot 使用额度
-- **GitHub Codespaces**:
-  - 每月 120 小时免费使用时长
-  - 15 GB 免费存储空间
+### Claw.Cloud
+- **网址**: https://run.claw.cloud/
+- **免费额度**:
+  - GitHub 账号持有 180 天后，每月可获得 $5 美金额度
+  - 可用于 Claude API 调用
+  - 基于 GitHub 账号认证
+- **特点**:
+  - 免费获取 Claude API 访问
+  - 无需信用卡
+  - 通过 GitHub 账号验证
+- **适合场景**: Claude API 开发测试、个人项目
+
+### GitHub 学生开发者包
 - **网址**: https://education.github.com/
+- **免费福利**:
+  - **GitHub Copilot**: 学生免费使用
+  - **GitHub Codespaces**: 每月 120 小时免费
+  - **数十种开发工具**: 免费或折扣访问
+- **申请条件**: 需要学生身份验证
 
 ## 内网穿透 / Tunnel 服务
 
