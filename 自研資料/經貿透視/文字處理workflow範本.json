@@ -1,0 +1,269 @@
+{
+  "name": "經貿透視-文字處理工作流程",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "/經貿透視/文字文檔",
+        "options": {}
+      },
+      "id": "google-drive-trigger",
+      "name": "Google Drive Trigger",
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "documentId": "={{ $json.id }}",
+        "simple": false
+      },
+      "id": "get-document",
+      "name": "取得文檔內容",
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// 文檔類型檢測與章節識別\nconst content = $node[\"取得文檔內容\"].json.content;\nconst documentName = $node[\"Google Drive Trigger\"].json.name;\n\n// 檢測是否為文字文檔\nconst isTextDocument = !content.includes('<table>') && /[一二三四五六]、/.test(content);\n\nif (!isTextDocument) {\n  return [{\n    json: {\n      error: '此文檔不是標準文字文檔格式',\n      documentType: 'unknown'\n    }\n  }];\n}\n\n// 章節識別與拆分\nconst chapterPatterns = {\n  'P1': /一、經濟回顧與展望([\\s\\S]*?)(?=二、|$)/,\n  'P2': /二、主要產業概況([\\s\\S]*?)(?=三、|$)/,\n  'P3': /三、與我國經貿關係([\\s\\S]*?)(?=四、|$)/,\n  'P4': /四、市場環境分析([\\s\\S]*?)(?=五、|$)/,\n  'P5': /五、投資環境分析([\\s\\S]*?)(?=六、|$)/,\n  'P6': /六、拓展建議([\\s\\S]*?)$/\n};\n\nconst chapters = [];\n\nfor (const [chapterCode, pattern] of Object.entries(chapterPatterns)) {\n  const match = content.match(pattern);\n  if (match) {\n    chapters.push({\n      chapterNumber: chapterCode,\n      title: match[0].split('、')[1].split('\\n')[0] || chapterCode,\n      content: match[1].trim(),\n      originalDocument: documentName,\n      documentType: 'text'\n    });\n  }\n}\n\nreturn chapters.map(chapter => ({ json: chapter }));"
+      },
+      "id": "chapter-analysis",
+      "name": "章節分析與拆分",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "split-batches",
+      "name": "批量處理章節",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "model": "deepseek-v2.5",
+        "options": {
+          "temperature": 0.1
+        },
+        "prompt": "你是經貿透視報告的專業文字格式校正助手，請按照以下標準處理文字內容：\n\n== 格式標準化要求 ==\n- 字體：新細明體 12級\n- 對齊：靠左對齊\n- 首行縮排：2字元\n- 段落間距：前段0行，後段10點\n- 行高：最小19.5點\n\n== 內容標準化 ==\n- 統一專有名詞表達\n- 標準化貨幣單位：美元、新台幣\n- 統一時間表達：2023年、第1季\n- 標準化機構名稱\n- 使用半形數字和英文\n- 中文標點使用全形\n\n請處理以下章節內容：\n標題：{{ $json.title }}\n內容：{{ $json.content }}\n\n請回傳格式化後的完整內容，保持專業術語不變。"
+      },
+      "id": "ai-text-format",
+      "name": "AI文字格式化",
+      "type": "n8n-nodes-base.ai",
+      "typeVersion": 1,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "title": "={{ $json.chapterNumber }} - {{ $json.title }}",
+        "body": "={{ $node[\"AI文字格式化\"].json.response }}",
+        "options": {
+          "pageSetup": {
+            "pageSize": "A4",
+            "margins": {
+              "top": "1cm",
+              "bottom": "1cm",
+              "left": "1cm",
+              "right": "1cm"
+            }
+          }
+        }
+      },
+      "id": "create-document",
+      "name": "建立新文檔",
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 1,
+      "position": [1340, 300]
+    },
+    {
+      "parameters": {
+        "documentId": "={{ $node[\"建立新文檔\"].json.documentId }}",
+        "actions": {
+          "format": {
+            "font": "DFKai-SB",
+            "fontSize": 12,
+            "alignment": "LEFT",
+            "firstLineIndent": 24,
+            "spaceAfter": 10,
+            "lineSpacing": 1.63
+          }
+        }
+      },
+      "id": "apply-format",
+      "name": "套用格式設定",
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 1,
+      "position": [1560, 300]
+    },
+    {
+      "parameters": {
+        "folderId": "經貿透視輸出資料夾ID",
+        "name": "={{ $json.chapterNumber }}_{{ $json.title }}.docx"
+      },
+      "id": "move-to-folder",
+      "name": "移至輸出資料夾",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [1780, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.chapterNumber }}",
+              "rightValue": "P6",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combineOperation": "all"
+        }
+      },
+      "id": "check-completion",
+      "name": "檢查處理完成",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2000, 300]
+    },
+    {
+      "parameters": {
+        "model": "deepseek-v2.5",
+        "prompt": "請對以下處理結果進行品質檢查：\n\n== 檢查項目 ==\n1. 格式是否統一（字體、對齊、縮排）\n2. 內容是否完整（無遺漏段落）\n3. 專業術語是否保持一致\n4. 標點符號是否規範\n5. 章節編號是否正確\n\n處理文檔：{{ $json.chapterNumber }}\n請提供品質檢查報告和改進建議。"
+      },
+      "id": "quality-check",
+      "name": "品質檢查",
+      "type": "n8n-nodes-base.ai",
+      "typeVersion": 1,
+      "position": [2220, 180]
+    }
+  ],
+  "connections": {
+    "Google Drive Trigger": {
+      "main": [
+        [
+          {
+            "node": "取得文檔內容",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "取得文檔內容": {
+      "main": [
+        [
+          {
+            "node": "章節分析與拆分",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "章節分析與拆分": {
+      "main": [
+        [
+          {
+            "node": "批量處理章節",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "批量處理章節": {
+      "main": [
+        [
+          {
+            "node": "AI文字格式化",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI文字格式化": {
+      "main": [
+        [
+          {
+            "node": "建立新文檔",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "建立新文檔": {
+      "main": [
+        [
+          {
+            "node": "套用格式設定",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "套用格式設定": {
+      "main": [
+        [
+          {
+            "node": "移至輸出資料夾",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "移至輸出資料夾": {
+      "main": [
+        [
+          {
+            "node": "檢查處理完成",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "檢查處理完成": {
+      "main": [
+        [
+          {
+            "node": "品質檢查",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "批量處理章節",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": ["經貿透視", "文字處理"],
+  "triggerCount": 1,
+  "updatedAt": "2025-01-04T00:00:00.000Z",
+  "versionId": "1.0.0"
+}

@@ -1,0 +1,39 @@
+# 快照文件（太大，不适合放到 Git）
+snapshots/*.tar.gz
+snapshots/*.zip
+
+# 日志文件
+logs/
+*.log
+
+# macOS
+.DS_Store
+
+# 临时文件
+*.tmp
+*.temp
+.cache/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# 敏感信息（如果在 config.yaml 中保存了 token）
+# config.yaml  # 如果包含敏感信息，取消注释此行
+
+# Release 信息文件（可选，如果不想提交）
+snapshots/release_info_*.txt
+snapshots/CHANGELOG_*.md
+
+# 备份文件
+*.bak
+*.backup

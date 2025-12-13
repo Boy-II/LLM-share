@@ -1,0 +1,336 @@
+{
+  "name": "經貿透視-表格處理工作流程",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "/經貿透視/表格文檔",
+        "options": {}
+      },
+      "id": "google-drive-trigger",
+      "name": "Google Drive Trigger",
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "documentId": "={{ $json.id }}",
+        "simple": false
+      },
+      "id": "get-document",
+      "name": "取得文檔內容",
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "model": "deepseek-v2.5",
+        "options": {
+          "temperature": 0.1
+        },
+        "prompt": "你是專業的經貿報告表格分析助手，請分析以下表格內容：\n\n== 分析任務 ==\n1. 表格類型識別（T0-T9）\n2. 數據結構分析\n3. 格式問題檢測\n4. 內容清理需求評估\n\n== 分析標準 ==\nT0: 國家基本相關資訊\nT1: 十年來總體經濟指標  \nT2: 主要進口產品\nT3: 主要出口產品\nT4: 主要進口國家\nT5: 主要出口國家\nT6: 我國自XX進口主要產品\nT7: 我國對XX出口主要產品\nT8: 重要商展\nT9: 商旅資訊表\n\n請以 JSON 格式回傳分析結果：\n{\n  \"tableType\": \"T1\",\n  \"dataStructure\": \"描述表格結構\",\n  \"formatIssues\": [\"問題1\", \"問題2\"],\n  \"cleaningNeeds\": [\"需要清理的內容\"],\n  \"specialRequirements\": [\"特殊處理需求\"]\n}\n\n表格內容：{{ $node[\"取得文檔內容\"].json.content }}"
+      },
+      "id": "ai-table-analysis",
+      "name": "AI表格結構分析",
+      "type": "n8n-nodes-base.ai",
+      "typeVersion": 1,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ JSON.parse($json.response).tableType }}",
+              "rightValue": "T9",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combineOperation": "any"
+        }
+      },
+      "id": "table-type-switch",
+      "name": "表格類型分支",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "model": "deepseek-v2.5",
+        "options": {
+          "temperature": 0.1
+        },
+        "prompt": "請處理商旅資訊表的專業校正：\n\n== 商旅資訊表標準結構 ==\n1. 駐外單位名稱\n2. 貨幣名稱  \n3. 匯率\n4. 與臺時差\n5. 網路（撥號、用戶號碼）\n6. 計程車\n7. 其他交通工具\n8. 當地報警電話\n9. 電話直台灣\n10. 電話直台灣地\n11. 行動電話\n12. 信用卡客服專線\n13. 旅遊水位查詢\n14. 小費\n15. 商店營業時間\n16. 檢疫規定\n17. 建議旅遊地名\n18. 建議旅館或民宿\n\n== 內容清理規則 ==\n刪除所有提示文字：\n- \"(請查詢後填入)\" → 清理為空白\n- \"(請聯絡後補充)\" → 完全刪除\n- 所有紅色標記的說明文字\n\n== 格式標準化 ==\n- 電話號碼：統一格式為 +國碼-區碼-號碼\n- 時差表示：統一格式為 ±X小時\n- 貨幣代碼：使用標準 ISO 代碼\n\n== 專業術語保護 ==\n以下項目名稱必須保持不變：\n- 駐外單位名稱（不要改為\"領事館\"或\"辦事處\"）\n- 當地報警電話（不要改為\"緊急電話\"）\n- 電話直台灣（保持原始表達）\n- 信用卡客服專線（保持完整術語）\n- 旅遊水位查詢（保持原始用詞）\n\n表格內容：{{ $node[\"取得文檔內容\"].json.content }}\n\n請按照上述標準進行校正，輸出處理後的完整表格。"
+      },
+      "id": "ai-travel-info-process",
+      "name": "AI商旅資訊表處理",
+      "type": "n8n-nodes-base.ai",
+      "typeVersion": 1,
+      "position": [1120, 180]
+    },
+    {
+      "parameters": {
+        "model": "deepseek-v2.5",
+        "options": {
+          "temperature": 0.1
+        },
+        "prompt": "你是經貿透視報告的專業表格格式校正助手，請嚴格按照以下標準校正表格：\n\n== 格式校正標準 ==\n\n【國名格式處理】\n- 中文國名：微軟正黑體（加粗）40級\n- 英文國名：Arial 16級\n\n【表格框線規範】  \n- 內框線：細線（0.5pt）\n- 外框線：粗線（1.5pt）\n- 框線顏色：黑色\n\n【表頭格式標準】\n- 背景顏色：R204, G255, B204（淺綠色）\n- 文字對齊：置中\n- 字體：微軟正黑體（加粗）\n\n【內容對齊規則】\n- 表格標題、單位：左對齊\n- 儲存格內容、第一列表頭：置中\n- 數字內容：右對齊\n- 小數點：小數點對齊，不足位數補0\n\n【格式標準化】\n- HS Code：統一為「HS Code」格式\n- 年份區間：使用全形波浪號「～」，如「2019～2020年」\n- 金額格式：千分位逗號，如「1,000,000美元」\n- 百分比：使用半形「%」\n- 括號：使用半形「()」\n- 中文標點：分號使用全形「；」\n\n【表格寬度】\n- 統一設定：自動調整成視窗大小\n\n== 當前任務 ==\n表格類型：{{ JSON.parse($node[\"AI表格結構分析\"].json.response).tableType }}\n表格內容：{{ $node[\"取得文檔內容\"].json.content }}\n\n請直接進行校正，輸出校正後的完整表格內容。"
+      },
+      "id": "ai-general-format",
+      "name": "AI一般表格格式化",
+      "type": "n8n-nodes-base.ai",
+      "typeVersion": 1,
+      "position": [1120, 420]
+    },
+    {
+      "parameters": {
+        "model": "deepseek-v2.5",
+        "options": {
+          "temperature": 0.1
+        },
+        "prompt": "請進行經貿報告表格的標準內容清理：\n\n== 清理規則 ==\n\n【T2-T5 表格清理】\n如發現以下標準文字，請完整刪除：\n1. \"一、按H.S.碼或當地海關號列前４碼，依2016年排名前30項順列。\"\n2. \"二、請注意本表數據（進口值）與其他各表所述數據之一致性。\"  \n3. \"三、請以美元表示為首選，以當地幣列表者，加註該幣與美元兌換率（須註明時間點或年、季平均匯率）。\"\n4. \"四、為統一本書刊上傳網路格式架構，請依本標準表格填寫，勿擅改格式。\"\n\n【T1 表格特殊處理】\n- 僅保留近十年的經濟數據\n- 刪除過舊的年份數據\n\n【通用清理項目】\n- 刪除所有紅色提示文字\n- 清理括號內的說明文字：如\"(請查詢後填入)\"\n- 移除多餘的格式說明\n- 保持核心數據和結構完整\n\n== 專業術語保護 ==\n以下術語必須保持原樣，不得修改：\n- 主要進口產品、主要出口產品\n- 十年來總體經濟指標\n- 國家基本相關資訊\n- 重要商展、商旅資訊表\n\n== 當前任務 ==\n表格類型：{{ JSON.parse($node[\"AI表格結構分析\"].json.response).tableType }}\n表格內容：{{ $node[\"AI一般表格格式化\"].json.response || $node[\"AI商旅資訊表處理\"].json.response }}\n\n請進行內容清理，回傳清理後的表格內容。"
+      },
+      "id": "ai-content-cleaning",
+      "name": "AI內容清理",
+      "type": "n8n-nodes-base.ai",
+      "typeVersion": 1,
+      "position": [1340, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// 數字格式處理和最終整合\nconst tableType = JSON.parse($node[\"AI表格結構分析\"].json.response).tableType;\nconst cleanedContent = $node[\"AI內容清理\"].json.response;\nconst originalDoc = $node[\"取得文檔內容\"].json;\n\n// 數字格式化處理\nfunction formatNumbers(content) {\n  // 千分位逗號\n  content = content.replace(/\\b(\\d{1,3}(?:,\\d{3})+)\\b/g, '$1');\n  // 統一百分比符號為半形\n  content = content.replace(/％/g, '%');\n  // 統一年份格式使用全形波浪號\n  content = content.replace(/(\\d{4})\\s*[-~]\\s*(\\d{4})/g, '$1～$2年');\n  // HS Code 統一格式\n  content = content.replace(/H\\.?S\\.?\\s*[Cc]ode?/g, 'HS Code');\n  \n  return content;\n}\n\n// 生成檔案名稱\nfunction generateFileName(tableType) {\n  const typeMap = {\n    'T0': '國家基本相關資訊',\n    'T1': '十年來總體經濟指標',\n    'T2': '主要進口產品',\n    'T3': '主要出口產品',\n    'T4': '主要進口國家',\n    'T5': '主要出口國家',\n    'T6': '我國進口主要產品',\n    'T7': '我國出口主要產品',\n    'T8': '重要商展',\n    'T9': '商旅資訊表'\n  };\n  return `${tableType}_${typeMap[tableType] || 'unknown'}.docx`;\n}\n\nconst formattedContent = formatNumbers(cleanedContent);\n\nreturn [{\n  json: {\n    tableType: tableType,\n    content: formattedContent,\n    fileName: generateFileName(tableType),\n    originalDocumentId: originalDoc.documentId,\n    processingComplete: true\n  }\n}];"
+      },
+      "id": "format-numbers",
+      "name": "數字格式化與整合",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1560, 300]
+    },
+    {
+      "parameters": {
+        "title": "={{ $json.fileName.replace('.docx', '') }}",
+        "body": "={{ $json.content }}",
+        "options": {
+          "pageSetup": {
+            "pageSize": "A4",
+            "margins": {
+              "top": "1cm",
+              "bottom": "1cm",
+              "left": "1cm",
+              "right": "1cm"
+            }
+          }
+        }
+      },
+      "id": "create-table-document",
+      "name": "建立表格文檔",
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 1,
+      "position": [1780, 300]
+    },
+    {
+      "parameters": {
+        "documentId": "={{ $node[\"建立表格文檔\"].json.documentId }}",
+        "actions": {
+          "formatTable": {
+            "borderStyle": {
+              "inner": {
+                "width": 0.5,
+                "color": "#000000"
+              },
+              "outer": {
+                "width": 1.5,
+                "color": "#000000"
+              }
+            },
+            "headerStyle": {
+              "backgroundColor": "#CCFFCC",
+              "textAlign": "center",
+              "fontWeight": "bold"
+            },
+            "dataAlignment": {
+              "text": "left",
+              "number": "right",
+              "percentage": "right"
+            }
+          }
+        }
+      },
+      "id": "apply-table-format",
+      "name": "套用表格格式",
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 1,
+      "position": [2000, 300]
+    },
+    {
+      "parameters": {
+        "folderId": "經貿透視表格輸出資料夾ID",
+        "name": "={{ $json.fileName }}"
+      },
+      "id": "move-table-to-folder",
+      "name": "移至表格輸出資料夾",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [2220, 300]
+    },
+    {
+      "parameters": {
+        "model": "deepseek-v2.5",
+        "prompt": "請對處理後的表格進行品質檢查：\n\n== 檢查項目 ==\n1. 表格類型識別是否正確\n2. 格式校正是否完整（框線、對齊、顏色）\n3. 內容清理是否徹底（標準文字已刪除）\n4. 專業術語是否保持不變\n5. 數字格式是否標準化\n6. 表格結構是否完整\n\n表格類型：{{ $json.tableType }}\n處理狀態：{{ $json.processingComplete }}\n檔案名稱：{{ $json.fileName }}\n\n請提供品質檢查報告和改進建議。"
+      },
+      "id": "table-quality-check",
+      "name": "表格品質檢查",
+      "type": "n8n-nodes-base.ai",
+      "typeVersion": 1,
+      "position": [2440, 300]
+    }
+  ],
+  "connections": {
+    "Google Drive Trigger": {
+      "main": [
+        [
+          {
+            "node": "取得文檔內容",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "取得文檔內容": {
+      "main": [
+        [
+          {
+            "node": "AI表格結構分析",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI表格結構分析": {
+      "main": [
+        [
+          {
+            "node": "表格類型分支",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "表格類型分支": {
+      "main": [
+        [
+          {
+            "node": "AI商旅資訊表處理",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI一般表格格式化",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI商旅資訊表處理": {
+      "main": [
+        [
+          {
+            "node": "AI內容清理",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI一般表格格式化": {
+      "main": [
+        [
+          {
+            "node": "AI內容清理",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI內容清理": {
+      "main": [
+        [
+          {
+            "node": "數字格式化與整合",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "數字格式化與整合": {
+      "main": [
+        [
+          {
+            "node": "建立表格文檔",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "建立表格文檔": {
+      "main": [
+        [
+          {
+            "node": "套用表格格式",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "套用表格格式": {
+      "main": [
+        [
+          {
+            "node": "移至表格輸出資料夾",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "移至表格輸出資料夾": {
+      "main": [
+        [
+          {
+            "node": "表格品質檢查",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": ["經貿透視", "表格處理", "AI校正"],
+  "triggerCount": 1,
+  "updatedAt": "2025-01-04T00:00:00.000Z",
+  "versionId": "1.0.0"
+}

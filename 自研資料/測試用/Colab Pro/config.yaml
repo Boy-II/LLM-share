@@ -1,0 +1,111 @@
+# ComfyUI 快照配置文件
+# 请根据你的实际环境修改以下配置
+
+# ============================================
+# ComfyUI 本机路径配置
+# ============================================
+comfyui_path: "/path/to/your/ComfyUI"  # 修改为你的 ComfyUI 实际路径
+
+# ============================================
+# GitHub 配置
+# ============================================
+github:
+  username: "your-github-username"      # 你的 GitHub 用户名
+  repo: "comfyui-snapshot"              # 仓库名称
+  token: ""                             # GitHub Personal Access Token（可选，通过环境变量设置更安全）
+
+# ============================================
+# 快照配置
+# ============================================
+snapshot:
+  # 输出目录
+  output_dir: "./snapshots"
+  
+  # 排除的文件和目录（使用 tar 的排除语法）
+  exclude:
+    - "models/*"                        # 排除所有模型文件
+    - "output/*"                        # 排除输出文件
+    - "input/*"                         # 排除输入文件
+    - "temp/*"                          # 排除临时文件
+    - ".git"                            # 排除 git 仓库
+    - ".git/*"
+    - "__pycache__"                     # 排除 Python 缓存
+    - "__pycache__/*"
+    - "*.pyc"                           # 排除编译的 Python 文件
+    - "*.pyo"
+    - ".DS_Store"                       # 排除 macOS 文件
+    - "*.log"                           # 排除日志文件
+    - ".venv"                           # 排除虚拟环境（如果有）
+    - ".venv/*"
+    - "venv"
+    - "venv/*"
+  
+  # 额外包含的文件（即使在 exclude 中也会包含）
+  include:
+    - "models/.gitkeep"                 # 保留目录结构标记文件
+    - "output/.gitkeep"
+    - "input/.gitkeep"
+  
+  # 压缩级别（1-9，9 最高压缩率但最慢）
+  compression_level: 6
+  
+# ============================================
+# Hugging Face 配置（可选，作为 GitHub 的替代方案）
+# ============================================
+huggingface:
+  enabled: false                        # 是否启用 HF 上传
+  username: "your-hf-username"          # Hugging Face 用户名
+  repo: "comfyui-snapshot"              # HF 仓库名称
+  token: ""                             # HF Token（可选，通过环境变量设置更安全）
+
+# ============================================
+# 日志配置
+# ============================================
+logging:
+  enabled: true
+  log_dir: "./logs"
+  log_level: "INFO"                     # DEBUG, INFO, WARNING, ERROR
+
+# ============================================
+# Colab 配置
+# ============================================
+colab:
+  # Colab 中的 Google Drive 挂载路径
+  drive_mount_path: "/content/drive"
+  
+  # ComfyUI 在 Drive 中的路径
+  drive_comfyui_path: "/content/drive/MyDrive/ComfyUI"
+  
+  # 自动启动端口
+  port: 8188
+  
+  # 启动参数
+  launch_args:
+    - "--listen"
+    - "0.0.0.0"
+    - "--port"
+    - "8188"
+    # 如果需要低显存模式，取消注释：
+    # - "--lowvram"
+    # 如果需要超低显存模式，取消注释：
+    # - "--novram"
+    # 如果有高显存 GPU (A100)，取消注释：
+    # - "--highvram"
+
+# ============================================
+# 通知配置（可选）
+# ============================================
+notifications:
+  enabled: false
+  # Slack webhook（可选）
+  slack_webhook: ""
+  # Discord webhook（可选）
+  discord_webhook: ""
+  # Email（可选）
+  email:
+    enabled: false
+    smtp_server: "smtp.gmail.com"
+    smtp_port: 587
+    from_address: "your-email@gmail.com"
+    to_address: "your-email@gmail.com"
+    password: ""                        # 使用环境变量更安全
