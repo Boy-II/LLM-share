@@ -1,4 +1,4 @@
-# LLM 常見誤解
+# LLM 概述及 Prompt 技巧
 
 > **LLM 是什麼？** LLM 是 Large Language Model（大型語言模型）的縮寫，就是你平常用的那些 AI 對話工具背後的技術核心。Gemini（Google）、Claude（Anthropic）、ChatGPT（OpenAI）都是 LLM。
 
